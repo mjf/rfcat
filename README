@@ -1,0 +1,130 @@
+NAME
+
+   RFCat - get/cache RFC files, search RFC index records
+
+SYNOPSIS
+
+   rfcat [-<cmd>] [@<uri>] [<mod>] [+<opt>[=<val>]] [<pat>]
+
+DESCRIPTION
+
+   <cmd>	Additional commands (see COMMANDS)
+   <uri>	Use "remote/remotepath" (see OPTIONS)
+   <mod>	Search mode (see MODES)
+   <opt>	Option name (see OPTIONS)
+   <val>	Option assignment value
+   <pat>	Either <reg> or <rfc> ("mode"-dependent)
+   <reg>	POSIX.2 regular expression pattern
+   <rfc>	RFC record (eg.: "RFC2460" or just "4278")
+
+COMMANDS
+
+   {h|-help}	Show this help screen
+   {V|-version}	Show version
+
+MODES
+
+   r[ecords]	Print RFC matching <reg> in whole records
+   n[umbers]	Print RFC matching <reg> in records numbers
+
+OPTIONS
+
+   Mirror connection:
+
+   remote	Mirror hostname or IP ("www.ietf.org")
+   remotepath	Mirror path to RFC files ("rfc")
+   remoteport	Mirror port (80)
+   remotehttp	Mirror HTTP version (1.0)
+   remoteerror	Mirror HTTP error code ("[54]0[0-9]")
+   localport	Local port (0 = random port)
+
+   Online mode:
+
+   online	Work online (bit: 1) [1]
+   forceonline	Force online working (bit: 0)
+
+   Offline cache:
+
+   caching	Caching mechanism (bit: 1)
+   cachepath	Cache files directory ("~/.rfcat") [2]
+   recache	Re-cache (with "forceonline") (bit: 0)
+
+   Records search:
+
+   pattern	Pattern to match (equivalent to <reg>) (".*")
+   status	Pattern to match in the "Status" field (".*")
+   obsoleted	Match obsoleted records too (bit: 1)
+   obsoleting	Match obsoleting records too (bit: 1)
+   updated	Match updated records too (bit: 1)
+   updating	Match updating records too (bit: 1)
+   omitformat	Do not match in the "Format" field (bit: 1)
+   ignorecase	Ignore character case while matching (bit: 1)
+
+   emphasize	Emphasize matches (ANSI reversal) (bit: 0)
+
+   Search restrictions:
+
+   obsoletedby	Pattern to match in "Obsoleted by" (".*")
+   obsoletes	Pattern to match in "Obsoletes" (".*")
+   updatedby	Pattern to match in "Updated by" (".*")
+   updates	Pattern to match in "Updates" (".*")
+
+   Matched records output:
+
+   oneline	Oneline records (bit: 0)
+   brief	Brief output (numbers, titles) (bit: 0)
+   short	Short output (numbers) (bit: 0)
+   blanklines	Put blank line after full record (bit: 1)
+
+   Download and print:
+
+   rfcnumber	Pattern to match in RFC numbers (0 = index)
+   plaintext	Cut off form feeds (see EXAMPLES) (bit: 0)
+
+   ---
+   [1]		Bit options can be negated with "no" prefix
+   [2]		Cache path directory must be created manually
+
+EXIT STATUS
+
+   0		No errors
+   1		Unknown option
+   2		Not a bit option
+   3		Invalid value for option
+   4		Unable to download data
+   5		Could not read cached data
+   6		Pattern not matched
+   7		Invalid pattern
+   255		Bad usage
+
+EXAMPLES
+
+   rfcat rfc4271 | more
+   rfcat +plaintext 4271 | less
+
+   rfcat +noobsoleted +noupdated +status=draft records IPv6
+   rfcat +status=draft +obsoleted=0 1771 record +brief
+   rfcat +status=proposed +obsoletedby=2460 IPv6 records
+   rfcat +obsoletes=2133 +updatedby=3152 record +nobrief=0
+   rfcat +forceonline numbers 427[1-8] +emphasize
+   rfcat +recache +forceonline records @example.tld/path
+
+   rfcat --version
+
+SEE ALSO
+
+   gawk(1) regex(7) more(1) less(1)
+
+COPYRIGHT
+
+   Copyright (C) 2008 Matous J. Fialka, <http://mjf.cz/>
+   Released under the terms of MIT License
+
+LICENSE
+
+   See the beginning of the source code, please.
+
+AUTHORS
+
+   Written by Matous J. Fialka, 2008.
+
