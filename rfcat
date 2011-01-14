@@ -1,0 +1,732 @@
+#! /usr/bin/gawk --exec
+
+# RFCat - get/cache RFC files, search RFC index records
+# Copyright (C) 2008 Matous J. Fialka, <http://mjf.cz/>
+# Relesed under the terms of The MIT License
+
+# RFCat version and some OS-dependent settings
+
+BEGIN {
+	VERSION = "1.0"
+
+	F[1] = "/dev/stdout"
+	F[2] = "/dev/stderr"
+
+	FALSE = 0
+	TRUE  = 1
+}
+
+# Usage and version functions
+
+function Usage()
+{
+	STDOUT("NAME\n")
+	STDOUT("   RFCat - get/cache RFC files, search RFC index records\n")
+
+	STDOUT("SYNOPSIS\n")
+	STDOUT("   rfcat [-<cmd>] [@<uri>] [<mod>] [+<opt>[=<val>]] [<pat>]\n")
+
+	STDOUT("DESCRIPTION\n")
+	STDOUT("   <cmd>	Additional commands (see COMMANDS)")
+	STDOUT("   <uri>	Use \"remote/remotepath\" (see OPTIONS)")
+	STDOUT("   <mod>	Search mode (see MODES)")
+	STDOUT("   <opt>	Option name (see OPTIONS)")
+	STDOUT("   <val>	Option assignment value")
+	STDOUT("   <pat>	Either <reg> or <rfc> (\"mode\"-dependent)")
+	STDOUT("   <reg>	POSIX.2 regular expression pattern")
+	STDOUT("   <rfc>	RFC record (eg.: \"RFC2460\" or just \"4278\")\n")
+
+	STDOUT("COMMANDS\n")
+	STDOUT("   {h|-help}	Show this help screen")
+	STDOUT("   {V|-version}	Show version\n")
+
+	STDOUT("MODES\n")
+	STDOUT("   r[ecords]	Print RFC matching <reg> in whole records")
+	STDOUT("   n[umbers]	Print RFC matching <reg> in records numbers\n")
+
+	STDOUT("OPTIONS\n")
+	STDOUT("   Mirror connection:\n")
+	STDOUT("   remote	Mirror hostname or IP (\"www.ietf.org\")")
+	STDOUT("   remotepath	Mirror path to RFC files (\"rfc\")")
+	STDOUT("   remoteport	Mirror port (80)")
+	STDOUT("   remotehttp	Mirror HTTP version (1.0)")
+	STDOUT("   remoteerror	Mirror HTTP error code (\"[54]0[0-9]\")")
+	STDOUT("   localport	Local port (0 = random port)\n")
+
+	STDOUT("   Online mode:\n")
+	STDOUT("   online	Work online (bit: 1) [1]")
+	STDOUT("   forceonline	Force online working (bit: 0)\n")
+
+	STDOUT("   Offline cache:\n")
+	STDOUT("   caching	Caching mechanism (bit: 1)")
+	STDOUT("   cachepath	Cache files directory (\"~/.rfcat\") [2]")
+	STDOUT("   recache	Re-cache (with \"forceonline\") (bit: 0)\n")
+
+	STDOUT("   Records search:\n")
+	STDOUT("   pattern	Pattern to match (equivalent to <reg>) (\".*\")")
+	STDOUT("   status	Pattern to match in the \"Status\" field (\".*\")")
+	STDOUT("   obsoleted	Match obsoleted records too (bit: 1)")
+	STDOUT("   obsoleting	Match obsoleting records too (bit: 1)")
+	STDOUT("   updated	Match updated records too (bit: 1)")
+	STDOUT("   updating	Match updating records too (bit: 1)")
+	STDOUT("   omitformat	Do not match in the \"Format\" field (bit: 1)")
+	STDOUT("   ignorecase	Ignore character case while matching (bit: 1)\n")
+	STDOUT("   emphasize	Emphasize matches (ANSI reversal) (bit: 0)\n")
+
+	STDOUT("   Search restrictions:\n")
+	STDOUT("   obsoletedby	Pattern to match in \"Obsoleted by\" (\".*\")")
+	STDOUT("   obsoletes	Pattern to match in \"Obsoletes\" (\".*\")")
+	STDOUT("   updatedby	Pattern to match in \"Updated by\" (\".*\")")
+	STDOUT("   updates	Pattern to match in \"Updates\" (\".*\")\n")
+
+	STDOUT("   Matched records output:\n")
+	STDOUT("   oneline	Oneline records (bit: 0)")
+	STDOUT("   brief	Brief output (numbers, titles) (bit: 0)")
+	STDOUT("   short	Short output (numbers) (bit: 0)")
+	STDOUT("   blanklines	Put blank line after full record (bit: 1)\n")
+
+	STDOUT("   Download and print:\n")
+	STDOUT("   rfcnumber	Pattern to match in RFC numbers (0 = index)")
+	STDOUT("   plaintext	Cut off form feeds (see EXAMPLES) (bit: 0)\n")
+
+	STDOUT("   ---")
+	STDOUT("   [1]		Bit options can be negated with \"no\" prefix")
+	STDOUT("   [2]		Cache path directory must be created manually\n")
+
+	STDOUT("EXIT STATUS\n")
+	STDOUT("   0		No errors")
+	STDOUT("   1		Unknown option")
+	STDOUT("   2		Not a bit option")
+	STDOUT("   3		Invalid value for option")
+	STDOUT("   4		Unable to download data")
+	STDOUT("   5		Could not read cached data")
+	STDOUT("   6		Pattern not matched")
+	STDOUT("   7		Invalid pattern")
+	STDOUT("   255		Bad usage\n")
+
+	STDOUT("EXAMPLES\n")
+	STDOUT("   rfcat rfc4271 | more")
+	STDOUT("   rfcat +plaintext 4271 | less\n")
+
+	STDOUT("   rfcat +noobsoleted +noupdated +status=draft records IPv6")
+	STDOUT("   rfcat +status=draft +obsoleted=0 1771 record +brief")
+	STDOUT("   rfcat +status=proposed +obsoletedby=2460 IPv6 records")
+	STDOUT("   rfcat +obsoletes=2133 +updatedby=3152 record +nobrief=0")
+	STDOUT("   rfcat +forceonline numbers 427[1-8] +emphasize")
+	STDOUT("   rfcat +recache +forceonline records @example.tld/path\n")
+
+	STDOUT("   rfcat --version\n")
+
+	STDOUT("SEE ALSO\n")
+	STDOUT("   gawk(1) regex(7) more(1) less(1)\n")
+
+	STDOUT("COPYRIGHT\n")
+	STDOUT("   Copyright (C) 2008 Matous J. Fialka, <http://mjf.cz/>")
+	STDOUT("   Released under the terms of MIT License\n")
+
+	STDOUT("LICENSE\n")
+	STDOUT("   See the beginning of the source code, please.\n")
+
+	STDOUT("AUTHORS\n")
+	STDOUT("   Written by Matous J. Fialka, 2008.\n")
+
+	close(F[1])
+}
+
+function Version()
+{
+	STDOUT("RFCat " VERSION)
+	STDOUT("Copyright (C) 2008 Matous J. Fialka, <http://mjf.cz/>")
+	STDOUT("Released under the terms of MIT License")
+
+	close(F[1])
+}
+
+# Types and default options values
+
+BEGIN {
+	NULL = ""
+
+	E_NO_ERROR		= 0
+	E_UNKNOWN_OPTION_ERROR	= 1
+	E_NOT_BIT_OPTION_ERROR	= 2
+	E_INVALID_VALUE_ERROR	= 3
+	E_DOWNLOAD_ERROR	= 4
+	E_READ_CACHE_ERROR	= 5
+	E_SEARCH_ERROR		= 6
+	E_PATTERN_ERROR		= 7
+	E_USAGE_ERROR		= 255
+	E			= E_NO_ERROR
+
+	T_NO_TYPE	= 0
+	T_BIT		= 1
+	T_CONBIT	= 2
+	T_NUMBER	= 3
+	T_STRING	= 4
+	T_PATTERN	= 5
+	T_PATH		= 6
+
+	EVERYTHING = ".*"
+
+	NewOption(O, T_STRING,	"remote",	"www.ietf.org")
+	NewOption(O, T_STRING,	"remotepath",	"rfc")
+	NewOption(O, T_STRING,	"remoteport",	"http")
+	NewOption(O, T_STRING,	"remotehttp",	"1.0")
+	NewOption(O, T_STRING,	"remoteerror",	"[54]0[0-9]")
+	NewOption(O, T_STRING,	"localport",	FALSE)
+	NewOption(O, T_BIT,	"online",	TRUE)
+	NewOption(O, T_BIT,	"forceonline",	FALSE)
+	NewOption(O, T_BIT,	"caching",	TRUE)
+	NewOption(O, T_PATH,	"cachepath",	"~/.rfcat")
+	NewOption(O, T_BIT,	"recache",	FALSE)
+	NewOption(O, T_PATTERN,	"pattern",	EVERYTHING)
+	NewOption(O, T_PATTERN,	"status",	EVERYTHING)
+	NewOption(O, T_BIT,	"ignorecase",	TRUE)
+	NewOption(O, T_BIT,	"obsoleted",	TRUE)
+	NewOption(O, T_BIT,	"obsoleting",	TRUE)
+	NewOption(O, T_BIT,	"updated",	TRUE)
+	NewOption(O, T_BIT,	"updating",	TRUE)
+	NewOption(O, T_BIT,	"omitformat",	TRUE)
+	NewOption(O, T_BIT,	"emphasize",	FALSE)
+	NewOption(O, T_PATTERN,	"obsoletedby",	EVERYTHING)
+	NewOption(O, T_PATTERN,	"obsoletes",	EVERYTHING)
+	NewOption(O, T_PATTERN, "updatedby",	EVERYTHING)
+	NewOption(O, T_PATTERN, "updates",	EVERYTHING)
+	NewOption(O, T_BIT,	"oneline",	FALSE)
+	NewOption(O, T_BIT,	"blanklines",	TRUE)
+	NewOption(O, T_BIT,	"brief",	FALSE)
+	NewOption(O, T_BIT,	"short",	FALSE)
+	NewOption(O, T_NUMBER,	"rfcnumber",	FALSE)
+	NewOption(O, T_BIT,	"plaintext",	FALSE)
+
+# Main program
+
+	M_NO_MODE		= 0
+	M_GET_AND_CACHE		= 1
+	M_SEARCH_RECORDS	= 2
+	M_SEARCH_NUMBERS	= 3
+	M			= M_NO_MODE
+
+	for(ARGN = 1; ARGN < ARGC; ARGN++)
+		MakeArgument(O, ARGV[ARGN])
+
+	if(M == M_NO_MODE) {
+		Usage()
+		exit E = E_USAGE_ERROR
+	}
+
+	IGNORECASE = GetOption(O, "ignorecase") == TRUE ? TRUE : NULL
+
+	if(M != M_GET_AND_CACHE)
+		SetOption(O, "rfcnumber", 0)
+	else
+		SetOption(O, "rfcnumber", GetOption(O, "pattern"))
+
+	Pattern        = GetOption(O, "pattern")
+	NumericPattern = "^[0-9\\^\\$\\[\\]\\.\\?\\*\\+\\-]+$"
+
+	if(M == M_SEARCH_NUMBERS && Pattern !~ NumericPattern)
+		Error(E_INVALID_PATTERN, "Invalid pattern \"" Pattern "\"")
+
+	if((RFCNumber = GetOption(O, "rfcnumber")) == 0)
+		RFCNumber = "rfc-index"
+	else
+		RFCNumber = sprintf("rfc%04d.txt", RFCNumber)
+
+	CacheFile	= GetOption(O, "cachepath") "/" RFCNumber
+	Caching		= GetOption(O, "caching")
+	OneLine		= GetOption(O, "oneline")
+	BlankLines	= GetOption(O, "blanklines")
+	Brief		= GetOption(O, "brief")
+	Short		= GetOption(O, "short")
+	PlainText	= GetOption(O, "plaintext")
+	OmitFormat	= GetOption(O, "omitformat")
+	DoEmphasize	= GetOption(O, "emphasize")
+	NoObsoleted	= GetOption(O, "noobsoleted")
+	NoObsoleting	= GetOption(O, "noobsoleting")
+	NoUpdated	= GetOption(O, "noupdated")
+	NoUpdating	= GetOption(O, "noupdating")
+	ObsoletedBy	= GetOption(O, "obsoletedby")
+	Obsoletes	= GetOption(O, "obsoletes")
+	UpdatedBy	= GetOption(O, "updatedby")
+	Updates		= GetOption(O, "updates")
+
+	StatusPattern		= "\\([Ss]tatus:[ \t]+.*" GetOption(O, "status") ".*\\)"
+	FormatPattern		= "\\([Ff]ormat:[ \t]+[Tt][Xx][Tt]=[0-9]+[ \t]+bytes\\)"
+	ObsoletedPattern	= "\\([Oo]bsoleted[ \t]+[Bb]y[ \t]+.*\\)"
+	ObsoletingPattern	= "\\([Oo]bsoletes[ \t]+[Rr][Ff][Cc][ \t]*[0-9]+.*\\)"
+	UpdatedPattern		= "\\([Uu]pdated[ \t]+[Bb][ \t]+.*\\)"
+	UpdatingPattern		= "\\([Uu]pdates[ \t]+[Rr][Ff][Cc][ \t]*[0-9]+.*\\)"
+	ObsoletedByPattern	= "\\([Oo]bsoleted[ \t]+[Bb]y[ \t]+[^\\)]*" ObsoletedBy "[^\\)]*\\)"
+	ObsoletesPattern	= "\\([Oo]bsoletes[ \t]+[^\\)]*" Obsoletes "[^\\)]*\\)"
+	UpdatedByPattern	= "\\([Uu]pdated[ \t]+[Bb]y[ \t]+[^\\)]*" UpdatedBy "[^\\)]*\\)"
+	UpdatesPattern		= "\\([Uu]pdates[ \t]+[^\\)]*" Updates "[^\\)]*\\)"
+
+	Service	= "/inet/tcp/%s/%s/%s"
+	Request = "GET http://%s/%s/%s HTTP/%s"
+	Failure = "^HTTP\\/[0-9]+\\.[0-9]+[ \t]+%s[ \t]+"
+
+	Service = sprintf(Service,
+			  GetOption(O, "localport"),
+			  GetOption(O, "remote"),
+			  GetOption(O, "remoteport"))
+
+	Request = sprintf(Request,
+			  GetOption(O, "remote"),
+			  GetOption(O, "remotepath"), RFCNumber,
+			  GetOption(O, "remotehttp"))
+
+	Failure = sprintf(Failure,
+			  GetOption(O, "remoteerror"))
+
+	if(Caching == TRUE && (Cached = FileExists(CacheFile)) == TRUE)
+		SetOption(O, "noonline", TRUE)
+
+	Success = Found = FALSE
+
+	if(GetOption(O, "forceonline") == TRUE || \
+	   GetOption(O, "online") == TRUE) {
+
+		print Request "\n" |& Service
+
+		while(((Service |& getline Line) > 0) && Line)
+			if(Line ~ Failure) {
+				close(Service)
+				Error(E_DOWNLOAD_ERROR,
+					"Unable to download data")
+			}
+
+		ReCache = GetOption(O, "recache")
+
+		if(Caching == TRUE && Cached == TRUE && ReCache == TRUE)
+			printf NULL > CacheFile
+
+		while((Service |& getline Line) > 0) {
+
+			if((Caching == TRUE && Cached == FALSE) || ReCache == TRUE)
+				print Line >> CacheFile
+
+			if(M == M_GET_AND_CACHE) {
+				if(PlainText == TRUE)
+					STDOUT(StripFormFeeds(Line))
+				else
+					STDOUT(Line)
+				continue
+			}
+
+			if(Line ~ /^[0-9][0-9][0-9][0-9][ \t]/) {
+				ArrayDelete(Record)
+				ArrayAdd(Record, Line)
+				while((Service |& getline Line) > 0) {
+					if((Caching == TRUE && Cached == FALSE) || ReCache == TRUE)
+						print Line >> CacheFile
+					if(! Line)
+						break
+					ArrayAdd(Record, Line)
+				}
+			}
+
+			OneLineRecord = BriefRecord = ArrayConcat(Record)
+
+			if(NoObsoleted == TRUE && OneLineRecord ~ ObsoletedPattern)
+					continue
+			if(NoObsoleting == TRUE && OneLineRecord ~ ObsoletingPattern)
+					continue
+			if(NoUpdated == TRUE && OneLineRecord ~ UpdatedPattern)
+					continue
+			if(NoUpdating == TRUE && OneLineRecord ~ UpdatingPattern)
+					continue
+
+			gsub(/\.[ \t]+.*$/, ".", BriefRecord)
+
+			if(M == M_SEARCH_NUMBERS)
+				Search = Head(OneLineRecord)
+			else {
+				Search = OneLineRecord
+				if(OmitFormat == TRUE)
+					gsub(FormatPattern, NULL, Search)
+			}
+
+			if((Found = (Search ~ Pattern) && (OneLineRecord ~ StatusPattern))) {
+
+				if(ObsoletedBy != EVERYTHING && OneLineRecord !~ ObsoletedByPattern)
+					continue
+				if(Obsoletes != EVERYTHING && OneLineRecord !~ ObsoletesPattern)
+					continue
+				if(UpdatedBy != EVERYTHING && OneLineRecord !~ UpdatedByPattern)
+					continue
+				if(Updates != EVERYTHING && OneLineRecord !~ UpdatesPattern)
+					continue
+
+				if(Short == TRUE)
+					STDOUT(StripZeroes(Head(BriefRecord)))
+				else
+				if(Brief == TRUE)
+					STDOUT(Emphasize(BriefRecord, Pattern, DoEmphasize))
+				else
+				if(OneLine == TRUE)
+					STDOUT(Emphasize(OneLineRecord, Pattern, DoEmphasize))
+				else {
+					if(Success == TRUE && BlankLines == TRUE)
+						STDOUT(NULL)
+					ArrayPrint(Record, Pattern, DoEmphasize)
+				}
+			}
+
+			if(Success == FALSE && Found == TRUE)
+				Success = TRUE
+		}
+
+		close(Service)
+		close(F[1])
+
+		if((Caching == TRUE && Cached == FALSE) || ReCache == TRUE)
+			close(CacheFile)
+
+		if(M == M_SEARCH_RECORDS || M == M_SEARCH_NUMBERS)
+			if(Success == FALSE)
+				E = E_SEARCH_ERROR
+
+		exit E
+	}
+
+	if(Caching == TRUE) {
+
+		if(Cached == FALSE)
+			Error(E_READ_CACHE_ERROR,
+				"Unable to read cached data")
+
+		while((getline Line < CacheFile) > 0) {
+
+			if(M == M_GET_AND_CACHE) {
+				if(PlainText == TRUE)
+					STDOUT(StripFormFeeds(Line))
+				else
+					STDOUT(Line)
+				continue
+			}
+
+			if(Line ~ /^[0-9][0-9][0-9][0-9][ \t]/) {
+				ArrayDelete(Record)
+				ArrayAdd(Record, Line)
+				while((getline Line < CacheFile) > 0) {
+					if(! Line)
+						break
+					ArrayAdd(Record, Line)
+				}
+			}
+
+			OneLineRecord = BriefRecord = ArrayConcat(Record)
+
+			if(NoObsoleted == TRUE && OneLineRecord ~ ObsoletedPattern)
+					continue
+			if(NoObsoleting == TRUE && OneLineRecord ~ ObsoletingPattern)
+					continue
+			if(NoUpdated == TRUE && OneLineRecord ~ UpdatedPattern)
+					continue
+			if(NoUpdating == TRUE && OneLineRecord ~ UpdatingPattern)
+					continue
+
+			gsub(/\.[ \t]+.*$/, ".", BriefRecord)
+
+			if(M == M_SEARCH_NUMBERS)
+				Search = Head(OneLineRecord)
+			else {
+				Search = OneLineRecord
+				if(OmitFormat == TRUE)
+					gsub(FormatPattern, NULL, Search)
+			}
+
+			if((Found = (Search ~ Pattern) && (OneLineRecord ~ StatusPattern))) {
+
+				if(ObsoletedBy != EVERYTHING && OneLineRecord !~ ObsoletedByPattern)
+					continue
+				if(Obsoletes != EVERYTHING && OneLineRecord !~ ObsoletesPattern)
+					continue
+				if(UpdatedBy != EVERYTHING && OneLineRecord !~ UpdatedByPattern)
+					continue
+				if(Updates != EVERYTHING && OneLineRecord !~ UpdatesPattern)
+					continue
+
+				if(Short == TRUE)
+					STDOUT(StripZeroes(Head(BriefRecord)))
+				else
+				if(Brief == TRUE)
+					STDOUT(Emphasize(BriefRecord, Pattern, DoEmphasize))
+				else
+				if(OneLine == TRUE)
+					STDOUT(Emphasize(OneLineRecord, Pattern, DoEmphasize))
+				else {
+					if(Success == TRUE && BlankLines == TRUE)
+						STDOUT(NULL)
+					ArrayPrint(Record, Pattern, DoEmphasize)
+				}
+			}
+
+			if(Success == FALSE && Found == TRUE)
+				Success = TRUE
+		}
+
+		close(CacheFile)
+		close(F[1])
+	}
+
+	if(M == M_SEARCH_RECORDS || M == M_SEARCH_NUMBERS)
+		if(Success == FALSE)
+			E = E_SEARCH_ERROR
+
+	exit E
+}
+
+# Exit
+
+END {
+	exit E
+}
+
+# Functions to handle options
+
+function NewOption(_Array, _Type, _Opt, _Val)
+{
+	if(_CheckOptionValue(_Type, _Val) == FALSE)
+		Error(E_INVALID_VALUE_ERROR,
+			"Invalid value \"" _Val "\" for option \"" _Opt "\"")
+
+	if(_Type == T_PATH) {
+
+		gsub(/\/+/, "/", _Val)
+		gsub(/\/+$/, NULL, _Val)
+		gsub(/^~/, ENVIRON["HOME"], _Val)
+	}
+
+	if(_Type == T_PATTERN)
+		gsub(/[ \t]+/, "[ \t]+", _Val)
+
+	if(_Type == T_NUMBER)
+		gsub(/^[Rr][Ff][Cc]/, NULL, _Val)
+
+	if(_Type == T_BIT || _Type == T_CONBIT)
+		_NewBitOption(_Array, _Type, _Opt, _Val)
+	else
+		_Array[_Type, _Opt] = _Val
+}
+
+function SetOption(_Array, _Opt, _Val,
+	_Type)
+{
+	_Type = _GetOptionType(_Array, _Opt)
+	NewOption(_Array, _Type, _Opt, _Val)
+}
+
+function GetOption(_Array, _Opt,
+	_Type)
+{
+	_Type = _GetOptionType(_Array, _Opt)
+	return _Array[_Type, _Opt]
+}
+
+function _NewBitOption(_Array, _Type, _Opt, _Val)
+{
+	if(_Type == T_BIT) {
+		_Array[T_BIT, _Opt] = _Val
+		_Array[T_CONBIT, "no" _Opt] = _Val == FALSE ? TRUE : FALSE
+	} else {
+		_Array[T_CONBIT, _Opt] = _Val
+		gsub(/^no/, NULL, _Opt)
+		_Array[T_BIT, _Opt] = _Val == FALSE ? TRUE : FALSE
+	}
+}
+
+function _CheckOptionValue(_Type, _Val)
+{
+	if(_Type == T_BIT || _Type == T_CONBIT)
+		return _Val ~ /^[01]$/
+
+	if(_Type == T_NUMBER)
+		return _Val ~ /^([Rr][Ff][Cc])?[0-9]+$/
+
+	return TRUE
+}
+
+function _GetOptionType(_Array, _Opt,
+	_Tmp, _Index, _Spl)
+{
+	asorti(_Array, _Tmp)
+
+	for(_Index in _Tmp) {
+		split(_Tmp[_Index], _Spl, SUBSEP)
+		if(_Spl[2] == _Opt)
+			return _Spl[1]
+	}
+
+	Error(E_UNKNOWN_OPTION_ERROR, "Unknown option \"" _Opt "\"")
+}
+
+# Function to make arguments
+
+function MakeArgument(_Array, _Arg,
+	_Opt, _Val)
+{
+	IGNORECASE = FALSE
+
+	if(_Arg ~ /^-(h|-help)$/) {
+		Usage()
+		exit E = E_NO_ERROR
+	}
+	if(_Arg ~ /^-(V|-version)$/) {
+		Version()
+		exit E = E_NO_ERROR
+	}
+
+	IGNORECASE = GetOption(_Array, "ignorecase") == TRUE ? TRUE : NULL
+
+	if(_Arg ~ /^@([a-zA-Z0-9\.]+)+\/.*/) {
+
+		gsub(/^@/, NULL, _Arg)
+		_Val = _Arg
+		gsub(/\/.*$/, NULL, _Val)
+		SetOption(_Array, "remote", _Val)
+
+		_Val = _Arg
+		gsub(/^[^\/]*\/+/, NULL, _Val)
+		gsub(/\/+$/, NULL, _Val)
+		SetOption(_Array, "remotepath", _Val)
+	}
+	else
+	if(_Arg ~ /^+[a-z]+=.*/) {
+
+		_Arg = substr(_Arg, 2)
+		_Opt = _Val = _Arg
+
+		gsub(/=.*$/, NULL, _Opt)
+		gsub(/^[^=]*=+/, NULL, _Val)
+
+		if(_GetOptionType(_Array, _Opt) == T_PATTERN && _Val == NULL)
+			SetOption(_Array, _Opt, EVERYTHING)
+		else
+			SetOption(_Array, _Opt, _Val)
+	}
+	else
+	if(_Arg ~ /^+[a-z]+$/) {
+
+		_Arg = substr(_Arg, 2)
+		if(_GetOptionType(_Array, _Arg) == T_BIT || \
+		   _GetOptionType(_Array, _Arg) == T_CONBIT)
+			SetOption(_Array, _Arg, TRUE)
+		else
+			Error(E_NOT_BIT_OPTION_ERROR, "Not a bit option \"" _Arg "\"")
+	}
+	else
+	if(_Arg ~ /^[rR]([eE]([cC]([oO]([rR]([dD]([sS])?)?)?)?)?)?$/) {
+		M = M_SEARCH_RECORDS
+	}
+	else
+	if(_Arg ~ /^[nN]([uU]([mM]([bB]([eE]([rR]([sS])?)?)?)?)?)?$/) {
+		M = M_SEARCH_NUMBERS
+	}
+	else {
+		if(M == M_NO_MODE)
+			M = M_GET_AND_CACHE
+		SetOption(_Array, "pattern", _Arg)
+	}
+}
+
+# Array functions
+
+function ArrayAdd(_Array, _Data)
+{
+	_Array[++_Array[0]] = _Data
+}
+
+function ArrayDelete(_Array,
+	_Index)
+{
+	for(_Index = 1; _Index < _Array[0]; _Index++)
+		delete _Array[_Index]
+	_Array[0] = 0
+}
+
+function ArrayPrint(_Array, _Matched, _DoEmphasize,
+	_Index)
+{
+	for(_Index = 1; _Index <= _Array[0]; _Index++)
+		STDOUT(Emphasize(_Array[_Index], _Matched, _DoEmphasize))
+}
+
+function ArrayConcat(_Array,
+	_Index, _Return, _Tmp, _Tmp2)
+{
+	_Return = NULL
+
+	for(_Index = 1; _Index <= _Array[0]; _Index++)
+		if(_Return)
+			_Return = _Return " " _Array[_Index]
+		else
+			_Return = _Array[_Index]
+
+	gsub(/[ \t]+/ , " ", _Return)
+
+	return _Return
+}
+
+# String function
+
+function Head(_String,
+	_Array)
+{
+	split(_String, _Array, /[ \t]+/)
+	return _Array[1]
+}
+
+function StripZeroes(_String,
+	_Tmp)
+{
+	_Tmp = _String
+	gsub(/^0+/, NULL, _Tmp)
+	return _Tmp
+}
+
+function StripFormFeeds(_String,
+	_Tmp)
+{
+	_Tmp = _String
+	gsub("\014", NULL, _Tmp)
+	return _Tmp
+}
+
+function Emphasize(_String, _Pattern, _Do,
+	_Tmp)
+{
+	_Tmp = _String
+	if(_Do == TRUE)
+		gsub("(" _Pattern ")", "\033[0007m&\033[0000m", _Tmp)
+	return _Tmp
+}
+
+# File and I/O functions
+
+function FileExists(_Filename,
+	_Line, _Result)
+{
+	if((getline _Line < _Filename) < 0)
+		return FALSE
+	close(_Filename)
+	return 1
+}
+
+function STDOUT(_Text)
+{
+	print(_Text) >> F[1]
+}
+
+function STDERR(_Text)
+{
+	print(_Text) > F[2]
+	close(F[2])
+}
+
+function Error(_ExitCode, _Message)
+{
+	STDERR("Error: " _Message)
+	exit E = _ExitCode
+}
