@@ -145,7 +145,7 @@ function Usage()
 	STDOUT("   See the beginning of the source code, please.\n")
 
 	STDOUT("AUTHORS\n")
-	STDOUT("   Written by Matous J. Fialka, 2008.\n")
+	STDOUT("   Written by Matous J. Fialka, 2008-2014.\n")
 
 	close(F[1])
 }
