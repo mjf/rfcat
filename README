@@ -31,7 +31,7 @@ OPTIONS
 
    Mirror connection:
 
-   remote	Mirror hostname or IP ("www.ietf.org")
+   remote	Mirror hostname ("www.ietf.org")
    remotepath	Mirror path to RFC files ("rfc")
    remoteport	Mirror port (80)
    remotehttp	Mirror HTTP version (1.0)
