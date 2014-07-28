@@ -63,7 +63,7 @@ function Usage()
 
 	STDOUT("OPTIONS\n")
 	STDOUT("   Mirror connection:\n")
-	STDOUT("   remote	Mirror hostname or IP (\"www.ietf.org\")")
+	STDOUT("   remote	Mirror hostname (\"www.ietf.org\")")
 	STDOUT("   remotepath	Mirror path to RFC files (\"rfc\")")
 	STDOUT("   remoteport	Mirror port (80)")
 	STDOUT("   remotehttp	Mirror HTTP version (1.0)")
