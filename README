@@ -99,8 +99,8 @@ EXIT STATUS
 
 EXAMPLES
 
-   rfcat rfc4271 | more
-   rfcat +plaintext 4271 | less
+   rfcat rfc4271 |more
+   rfcat +plaintext 4271 |less
 
    rfcat +noobsoleted +noupdated +status=draft records IPv6
    rfcat +status=draft +obsoleted=0 1771 record +brief
@@ -117,7 +117,7 @@ SEE ALSO
 
 COPYRIGHT
 
-   Copyright (C) 2008-2014 Matous J. Fialka, <http://mjf.cz/>
+   Copyright (C) 2008-2015 Matous J. Fialka, <http://mjf.cz/>
    Released under the terms of MIT License
 
 LICENSE
@@ -126,5 +126,5 @@ LICENSE
 
 AUTHORS
 
-   Written by Matous J. Fialka, 2008-2014.
+   Written by Matous J. Fialka, 2008-2015.
 
