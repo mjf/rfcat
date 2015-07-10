@@ -1,7 +1,7 @@
 #! /usr/bin/gawk --exec
 
 # RFCat - get/cache RFC files, search RFC index records
-# Copyright (C) 2008-2014 Matous J. Fialka, <http://mjf.cz/>
+# Copyright (C) 2008-2015 Matous J. Fialka, <http://mjf.cz/>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -122,8 +122,8 @@ function Usage()
 	STDOUT("   255		Bad usage\n")
 
 	STDOUT("EXAMPLES\n")
-	STDOUT("   rfcat rfc4271 | more")
-	STDOUT("   rfcat +plaintext 4271 | less\n")
+	STDOUT("   rfcat rfc4271 |more")
+	STDOUT("   rfcat +plaintext 4271 |less\n")
 
 	STDOUT("   rfcat +noobsoleted +noupdated +status=draft records IPv6")
 	STDOUT("   rfcat +status=draft +obsoleted=0 1771 record +brief")
@@ -138,14 +138,14 @@ function Usage()
 	STDOUT("   gawk(1) regex(7) more(1) less(1)\n")
 
 	STDOUT("COPYRIGHT\n")
-	STDOUT("   Copyright (C) 2008-2014 Matous J. Fialka, <http://mjf.cz/>")
+	STDOUT("   Copyright (C) 2008-2015 Matous J. Fialka, <http://mjf.cz/>")
 	STDOUT("   Released under the terms of MIT License\n")
 
 	STDOUT("LICENSE\n")
 	STDOUT("   See the beginning of the source code, please.\n")
 
 	STDOUT("AUTHORS\n")
-	STDOUT("   Written by Matous J. Fialka, 2008-2014.\n")
+	STDOUT("   Written by Matous J. Fialka, 2008-2015.\n")
 
 	close(F[1])
 }
