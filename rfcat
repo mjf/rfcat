@@ -68,7 +68,7 @@ function Usage()
 	STDOUT("   remoteport	Mirror port (443)")
 	STDOUT("   remotehttp	Mirror HTTP version (1.1)")
 	STDOUT("   remoteerror	Mirror HTTP error code (\"[54]0[0-9]\")")
-	STDOUT("   remotetls	Mirror HTTP scheme (bit: 1)\n")
+	STDOUT("   remotetls	Mirror HTTP uses HTTPS (bit: 1)\n")
 
 	STDOUT("   Online mode:\n")
 	STDOUT("   online	Work online (bit: 1) [1]")
