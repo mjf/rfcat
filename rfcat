@@ -317,6 +317,9 @@ BEGIN {
 
 		while((Service |& getline Line) > 0) {
 
+			if(Line ~ /\r$/)
+				break
+
 			if((Caching == TRUE && Cached == FALSE) || ReCache == TRUE)
 				print Line >> CacheFile
 
