@@ -33,10 +33,10 @@ OPTIONS
 
    remote	Mirror hostname ("www.ietf.org")
    remotepath	Mirror path to RFC files ("rfc")
-   remoteport	Mirror port (80)
-   remotehttp	Mirror HTTP version (1.0)
+   remoteport	Mirror port (443)
+   remotehttp	Mirror HTTP version (1.1)
    remoteerror	Mirror HTTP error code ("[54]0[0-9]")
-   localport	Local port (0 = random port)
+   remotetls	Mirror HTTP scheme (bit: 1)
 
    Online mode:
 
