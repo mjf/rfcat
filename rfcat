@@ -24,7 +24,7 @@
 # RFCat version and some OS-dependent settings
 
 BEGIN {
-	VERSION = "1.1-rc1"
+	VERSION = "1.1"
 
 	F[1] = "/dev/stdout"
 	F[2] = "/dev/stderr"
