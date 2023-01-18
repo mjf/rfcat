@@ -279,7 +279,7 @@ BEGIN {
 	UpdatedByPattern	= "\\([Uu]pdated[ \t]+[Bb]y[ \t]+[^\\)]*" UpdatedBy "[^\\)]*\\)"
 	UpdatesPattern		= "\\([Uu]pdates[ \t]+[^\\)]*" Updates "[^\\)]*\\)"
 
-	Service = sprintf("nc %s %s %s",
+	Service = sprintf("ncat %s %s %s",
 			  GetOption(O, "remotetls") == TRUE ? "--ssl" : NULL,
 			  GetOption(O, "remote"),
 			  GetOption(O, "remoteport"))
