@@ -1,7 +1,7 @@
 #! /usr/bin/gawk --exec
 
 # RFCat - get/cache RFC files, search RFC index records
-# Copyright (C) 2008-2020 Matous J. Fialka, <http://mjf.cz/>
+# Copyright (C) 2008-2026 Matous J. Fialka, <http://mjf.cz/>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -138,14 +138,14 @@ function Usage()
 	STDOUT("   gawk(1) regex(7) more(1) less(1)\n")
 
 	STDOUT("COPYRIGHT\n")
-	STDOUT("   Copyright (C) 2008-2015 Matous J. Fialka, <http://mjf.cz/>")
+	STDOUT("   Copyright (C) 2008-2026 Matous J. Fialka, <http://mjf.cz/>")
 	STDOUT("   Released under the terms of MIT License\n")
 
 	STDOUT("LICENSE\n")
 	STDOUT("   See the beginning of the source code, please.\n")
 
 	STDOUT("AUTHORS\n")
-	STDOUT("   Written by Matous J. Fialka, 2008-2015.\n")
+	STDOUT("   Written by Matous J. Fialka, 2008-2026.\n")
 
 	close(F[1])
 }
@@ -153,7 +153,7 @@ function Usage()
 function Version()
 {
 	STDOUT("RFCat " VERSION)
-	STDOUT("Copyright (C) 2008-2014 Matous J. Fialka, <http://mjf.cz/>")
+	STDOUT("Copyright (C) 2008-2026 Matous J. Fialka, <http://mjf.cz/>")
 	STDOUT("Released under the terms of MIT License")
 
 	close(F[1])
@@ -185,7 +185,7 @@ BEGIN {
 
 	EVERYTHING = ".*"
 
-	NewOption(O, T_STRING,	"remote",	"www.ietf.org")
+	NewOption(O, T_STRING,	"remote",	"www.rfc-editor.org")
 	NewOption(O, T_STRING,	"remotepath",	"rfc")
 	NewOption(O, T_STRING,	"remoteport",	"443")
 	NewOption(O, T_STRING,	"remotehttp",	"1.1")
@@ -246,7 +246,7 @@ BEGIN {
 		Error(E_INVALID_PATTERN, "Invalid pattern \"" Pattern "\"")
 
 	if((RFCNumber = GetOption(O, "rfcnumber")) == 0)
-		RFCNumber = "rfc-index"
+		RFCNumber = "../rfc-index.txt"
 	else
 		RFCNumber = sprintf("rfc%04d.txt", RFCNumber)
 
@@ -324,10 +324,7 @@ BEGIN {
 				print Line >> CacheFile
 
 			if(M == M_GET_AND_CACHE) {
-				if(PlainText == TRUE)
-					STDOUT(StripFormFeeds(Line))
-				else
-					STDOUT(Line)
+				OutputLine(Line)
 				continue
 			}
 
@@ -343,55 +340,7 @@ BEGIN {
 				}
 			}
 
-			OneLineRecord = BriefRecord = ArrayConcat(Record)
-
-			if(NoObsoleted == TRUE && OneLineRecord ~ ObsoletedPattern)
-					continue
-			if(NoObsoleting == TRUE && OneLineRecord ~ ObsoletingPattern)
-					continue
-			if(NoUpdated == TRUE && OneLineRecord ~ UpdatedPattern)
-					continue
-			if(NoUpdating == TRUE && OneLineRecord ~ UpdatingPattern)
-					continue
-
-			gsub(/\.[ \t]+.*$/, ".", BriefRecord)
-
-			if(M == M_SEARCH_NUMBERS)
-				Search = Head(OneLineRecord)
-			else {
-				Search = OneLineRecord
-				if(OmitFormat == TRUE)
-					gsub(FormatPattern, NULL, Search)
-			}
-
-			if((Found = (Search ~ Pattern) && (OneLineRecord ~ StatusPattern))) {
-
-				if(ObsoletedBy != EVERYTHING && OneLineRecord !~ ObsoletedByPattern)
-					continue
-				if(Obsoletes != EVERYTHING && OneLineRecord !~ ObsoletesPattern)
-					continue
-				if(UpdatedBy != EVERYTHING && OneLineRecord !~ UpdatedByPattern)
-					continue
-				if(Updates != EVERYTHING && OneLineRecord !~ UpdatesPattern)
-					continue
-
-				if(Short == TRUE)
-					STDOUT(StripZeroes(Head(BriefRecord)))
-				else
-				if(Brief == TRUE)
-					STDOUT(Emphasize(BriefRecord, Pattern, DoEmphasize))
-				else
-				if(OneLine == TRUE)
-					STDOUT(Emphasize(OneLineRecord, Pattern, DoEmphasize))
-				else {
-					if(Success == TRUE && BlankLines == TRUE)
-						STDOUT(NULL)
-					ArrayPrint(Record, Pattern, DoEmphasize)
-				}
-			}
-
-			if(Success == FALSE && Found == TRUE)
-				Success = TRUE
+			Found = ProcessRecord(Record)
 		}
 
 		close(Service)
@@ -416,10 +365,7 @@ BEGIN {
 		while((getline Line < CacheFile) > 0) {
 
 			if(M == M_GET_AND_CACHE) {
-				if(PlainText == TRUE)
-					STDOUT(StripFormFeeds(Line))
-				else
-					STDOUT(Line)
+				OutputLine(Line)
 				continue
 			}
 
@@ -433,55 +379,7 @@ BEGIN {
 				}
 			}
 
-			OneLineRecord = BriefRecord = ArrayConcat(Record)
-
-			if(NoObsoleted == TRUE && OneLineRecord ~ ObsoletedPattern)
-					continue
-			if(NoObsoleting == TRUE && OneLineRecord ~ ObsoletingPattern)
-					continue
-			if(NoUpdated == TRUE && OneLineRecord ~ UpdatedPattern)
-					continue
-			if(NoUpdating == TRUE && OneLineRecord ~ UpdatingPattern)
-					continue
-
-			gsub(/\.[ \t]+.*$/, ".", BriefRecord)
-
-			if(M == M_SEARCH_NUMBERS)
-				Search = Head(OneLineRecord)
-			else {
-				Search = OneLineRecord
-				if(OmitFormat == TRUE)
-					gsub(FormatPattern, NULL, Search)
-			}
-
-			if((Found = (Search ~ Pattern) && (OneLineRecord ~ StatusPattern))) {
-
-				if(ObsoletedBy != EVERYTHING && OneLineRecord !~ ObsoletedByPattern)
-					continue
-				if(Obsoletes != EVERYTHING && OneLineRecord !~ ObsoletesPattern)
-					continue
-				if(UpdatedBy != EVERYTHING && OneLineRecord !~ UpdatedByPattern)
-					continue
-				if(Updates != EVERYTHING && OneLineRecord !~ UpdatesPattern)
-					continue
-
-				if(Short == TRUE)
-					STDOUT(StripZeroes(Head(BriefRecord)))
-				else
-				if(Brief == TRUE)
-					STDOUT(Emphasize(BriefRecord, Pattern, DoEmphasize))
-				else
-				if(OneLine == TRUE)
-					STDOUT(Emphasize(OneLineRecord, Pattern, DoEmphasize))
-				else {
-					if(Success == TRUE && BlankLines == TRUE)
-						STDOUT(NULL)
-					ArrayPrint(Record, Pattern, DoEmphasize)
-				}
-			}
-
-			if(Success == FALSE && Found == TRUE)
-				Success = TRUE
+			Found = ProcessRecord(Record)
 		}
 
 		close(CacheFile)
@@ -718,6 +616,70 @@ function Emphasize(_String, _Pattern, _Do,
 	if(_Do == TRUE)
 		gsub("(" _Pattern ")", "\033[0007m&\033[0000m", _Tmp)
 	return _Tmp
+}
+
+function OutputLine(_Line)
+{
+	if(PlainText == TRUE)
+		STDOUT(StripFormFeeds(_Line))
+	else
+		STDOUT(_Line)
+}
+
+function ProcessRecord(_Record,
+	_OneLineRecord, _BriefRecord, _Search, _Found)
+{
+	_OneLineRecord = _BriefRecord = ArrayConcat(_Record)
+
+	if(NoObsoleted == TRUE && _OneLineRecord ~ ObsoletedPattern)
+		return FALSE
+	if(NoObsoleting == TRUE && _OneLineRecord ~ ObsoletingPattern)
+		return FALSE
+	if(NoUpdated == TRUE && _OneLineRecord ~ UpdatedPattern)
+		return FALSE
+	if(NoUpdating == TRUE && _OneLineRecord ~ UpdatingPattern)
+		return FALSE
+
+	gsub(/\.[ \t]+.*$/, ".", _BriefRecord)
+
+	if(M == M_SEARCH_NUMBERS)
+		_Search = Head(_OneLineRecord)
+	else {
+		_Search = _OneLineRecord
+		if(OmitFormat == TRUE)
+			gsub(FormatPattern, NULL, _Search)
+	}
+
+	if((_Found = (_Search ~ Pattern) && (_OneLineRecord ~ StatusPattern))) {
+
+		if(ObsoletedBy != EVERYTHING && _OneLineRecord !~ ObsoletedByPattern)
+			return FALSE
+		if(Obsoletes != EVERYTHING && _OneLineRecord !~ ObsoletesPattern)
+			return FALSE
+		if(UpdatedBy != EVERYTHING && _OneLineRecord !~ UpdatedByPattern)
+			return FALSE
+		if(Updates != EVERYTHING && _OneLineRecord !~ UpdatesPattern)
+			return FALSE
+
+		if(Short == TRUE)
+			STDOUT(StripZeroes(Head(_BriefRecord)))
+		else
+		if(Brief == TRUE)
+			STDOUT(Emphasize(_BriefRecord, Pattern, DoEmphasize))
+		else
+		if(OneLine == TRUE)
+			STDOUT(Emphasize(_OneLineRecord, Pattern, DoEmphasize))
+		else {
+			if(Success == TRUE && BlankLines == TRUE)
+				STDOUT(NULL)
+			ArrayPrint(_Record, Pattern, DoEmphasize)
+		}
+	}
+
+	if(Success == FALSE && _Found == TRUE)
+		Success = TRUE
+
+	return _Found
 }
 
 # File and I/O functions
