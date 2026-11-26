@@ -78,7 +78,7 @@ function Usage()
 	STDOUT("   Offline cache:\n")
 	STDOUT("   caching      Caching mechanism (bit: 1)")
 	STDOUT("   cachepath    Cache files directory (\"~/.rfcat\") [2]")
-	STDOUT("   index        Index file (\"rfc-index.txt\"")
+	STDOUT("   index        Index file (\"rfc-index.txt\")")
 	STDOUT("   recache      Re-cache (with \"forceonline\") (bit: 0)\n")
 
 	STDOUT("   Records search:\n")
