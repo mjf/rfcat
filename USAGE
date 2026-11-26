@@ -8,94 +8,96 @@ SYNOPSIS
 
 DESCRIPTION
 
-   <cmd>	Additional commands (see COMMANDS)
-   <uri>	Use "remote/remotepath" (see OPTIONS)
-   <mod>	Search mode (see MODES)
-   <opt>	Option name (see OPTIONS)
-   <val>	Option assignment value
-   <pat>	Either <reg> or <rfc> ("mode"-dependent)
-   <reg>	POSIX.2 regular expression pattern
-   <rfc>	RFC record (eg.: "RFC2460" or just "4278")
+   <cmd>        Additional commands (see COMMANDS)
+   <uri>        Use "remote/remotepath" (see OPTIONS)
+   <mod>        Search mode (see MODES)
+   <opt>        Option name (see OPTIONS)
+   <val>        Option assignment value
+   <pat>        Either <reg> or <rfc> ("mode"-dependent)
+   <reg>        POSIX.2 regular expression pattern
+   <rfc>        RFC record (eg.: "RFC2460" or just "4278")
 
 COMMANDS
 
-   {h|-help}	Show this help screen
-   {V|-version}	Show version
+   {h|-help}    Show this help screen
+   {V|-version} Show version
 
 MODES
 
-   r[ecords]	Print RFC matching <reg> in whole records
-   n[umbers]	Print RFC matching <reg> in records numbers
+   r[ecords]    Print RFC matching <reg> in whole records
+   n[umbers]    Print RFC matching <reg> in records numbers
 
 OPTIONS
 
    Mirror connection:
 
-   remote	Mirror hostname ("www.ietf.org")
-   remotepath	Mirror path to RFC files ("rfc")
-   remoteport	Mirror port (443)
-   remotehttp	Mirror HTTP version (1.1)
-   remoteerror	Mirror HTTP error code ("[54]0[0-9]")
-   remotetls	Mirror HTTP uses HTTPS (bit: 1)
+   remote       Mirror hostname ("www.rfc-editor.org")
+   remotepath   Mirror path to RFC files ("rfc")
+   remoteindex  Mirror path to RFC index ("../rfc-index.txt")
+   remoteport   Mirror port (443)
+   remotehttp   Mirror HTTP version (1.1)
+   remoteerror  Mirror HTTP error code ("[54]0[0-9]")
+   remotetls    Mirror HTTP uses HTTPS (bit: 1)
 
    Online mode:
 
-   online	Work online (bit: 1) [1]
-   forceonline	Force online working (bit: 0)
+   online       Work online (bit: 1) [1]
+   forceonline  Force online working (bit: 0)
 
    Offline cache:
 
-   caching	Caching mechanism (bit: 1)
-   cachepath	Cache files directory ("~/.rfcat") [2]
-   recache	Re-cache (with "forceonline") (bit: 0)
+   caching      Caching mechanism (bit: 1)
+   cachepath    Cache files directory ("~/.rfcat") [2]
+   index        Index file ("rfc-index.txt"
+   recache      Re-cache (with "forceonline") (bit: 0)
 
    Records search:
 
-   pattern	Pattern to match (equivalent to <reg>) (".*")
-   status	Pattern to match in the "Status" field (".*")
-   obsoleted	Match obsoleted records too (bit: 1)
-   obsoleting	Match obsoleting records too (bit: 1)
-   updated	Match updated records too (bit: 1)
-   updating	Match updating records too (bit: 1)
-   omitformat	Do not match in the "Format" field (bit: 1)
-   ignorecase	Ignore character case while matching (bit: 1)
+   pattern      Pattern to match (equivalent to <reg>) (".*")
+   status       Pattern to match in the "Status" field (".*")
+   obsoleted    Match obsoleted records too (bit: 1)
+   obsoleting   Match obsoleting records too (bit: 1)
+   updated      Match updated records too (bit: 1)
+   updating     Match updating records too (bit: 1)
+   omitformat   Do not match in the "Format" field (bit: 1)
+   ignorecase   Ignore character case while matching (bit: 1)
 
-   emphasize	Emphasize matches (ANSI reversal) (bit: 0)
+   emphasize    Emphasize matches (ANSI reversal) (bit: 0)
 
    Search restrictions:
 
-   obsoletedby	Pattern to match in "Obsoleted by" (".*")
-   obsoletes	Pattern to match in "Obsoletes" (".*")
-   updatedby	Pattern to match in "Updated by" (".*")
-   updates	Pattern to match in "Updates" (".*")
+   obsoletedby  Pattern to match in "Obsoleted by" (".*")
+   obsoletes    Pattern to match in "Obsoletes" (".*")
+   updatedby    Pattern to match in "Updated by" (".*")
+   updates      Pattern to match in "Updates" (".*")
 
    Matched records output:
 
-   oneline	Oneline records (bit: 0)
-   brief	Brief output (numbers, titles) (bit: 0)
-   short	Short output (numbers) (bit: 0)
-   blanklines	Put blank line after full record (bit: 1)
+   oneline      Oneline records (bit: 0)
+   brief        Brief output (numbers, titles) (bit: 0)
+   short        Short output (numbers) (bit: 0)
+   blanklines   Put blank line after full record (bit: 1)
 
    Download and print:
 
-   rfcnumber	Pattern to match in RFC numbers (0 = index)
-   plaintext	Cut off form feeds (see EXAMPLES) (bit: 0)
+   rfcnumber    Pattern to match in RFC numbers (0 = index)
+   plaintext    Cut off form feeds (see EXAMPLES) (bit: 0)
 
    ---
-   [1]		Bit options can be negated with "no" prefix
-   [2]		Cache path directory must be created manually
+   [1]          Bit options can be negated with "no" prefix
+   [2]          Cache path directory must be created manually
 
 EXIT STATUS
 
-   0		No errors
-   1		Unknown option
-   2		Not a bit option
-   3		Invalid value for option
-   4		Unable to download data
-   5		Could not read cached data
-   6		Pattern not matched
-   7		Invalid pattern
-   255		Bad usage
+   0   No errors
+   1   Unknown option
+   2   Not a bit option
+   3   Invalid value for option
+   4   Unable to download data
+   5   Could not read cached data
+   6   Pattern not matched
+   7   Invalid pattern
+   255 Bad usage
 
 EXAMPLES
 
@@ -117,7 +119,7 @@ SEE ALSO
 
 COPYRIGHT
 
-   Copyright (C) 2008-2015 Matous J. Fialka, <http://mjf.cz/>
+   Copyright (C) 2008-2026 Matous J. Fialka, <http://mjf.cz/>
    Released under the terms of MIT License
 
 LICENSE
@@ -126,5 +128,5 @@ LICENSE
 
 AUTHORS
 
-   Written by Matous J. Fialka, 2008-2015.
+   Written by Matous J. Fialka, 2008-2026.
 
